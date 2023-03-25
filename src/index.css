@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+* {
+  font-family: 'Readex Pro', sans-serif;
+}
+
+body {
+  @apply bg-secondary
+
+}
+
+/* common  */
+.glass {
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* for Safari */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
