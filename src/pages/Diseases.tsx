@@ -1,3 +1,5 @@
+import useDiseases from '@/hooks/useDiseases';
+import { useAppSelector } from '@/hooks/useRedux';
 import React from 'react'
 import { BiSearch } from 'react-icons/bi'
 interface Props {
@@ -15,50 +17,10 @@ const Card = ({ name, symptoms }: Props) => {
   </div>
 }
 function Diseases() {
-  const mentalIllnesses = [{
-    name: "Anxiety Disorders", symptoms: ["Excessive worry or fear", "Avoiding social situations", "Panic attacks", "Obsessive-compulsive behavior", "Physical symptoms such as sweating or trembling",],
-  },
-  {
-    name: "Mood Disorders",
-    symptoms: [
-      "Depressed mood",
-      "Loss of interest or pleasure",
-      "Irritability",
-      "Feelings of worthlessness or guilt",
-      "Difficulty concentrating",
-    ],
-  },
-  {
-    name: "Personality Disorders",
-    symptoms: [
-      "Unstable sense of self",
-      "Impulsive behavior",
-      "Difficulty with relationships",
-      "Fear of abandonment",
-      "Emotional instability",
-    ],
-  },
-  {
-    name: "Eating Disorders",
-    symptoms: [
-      "Restricting food intake",
-      "Binge eating",
-      "Purging behaviors",
-      "Obsessive thoughts about body weight or shape",
-      "Denial of hunger",
-    ],
-  },
-  {
-    name: "Substance Abuse Disorders",
-    symptoms: [
-      "Compulsive drug or alcohol use",
-      "Withdrawal symptoms",
-      "Loss of control over substance use",
-      "Continued use despite negative consequences",
-      "Tolerance to the substance",
-    ],
-  },
-  ];
+ 
+
+  const { loading } = useDiseases()
+  const { diseases } = useAppSelector(state => state.diseases)
 
   return (
     <div>
@@ -71,9 +33,9 @@ function Diseases() {
           <input className='outline-none w-full' type="text" placeholder='ابحث هنا' />
         </div>
         <div dir='ltr' className="container py-10 grid grid-cols-1 md:grid-cols-3 gap-10">
-          {mentalIllnesses.map((item, index) => (
-            <Card key={index} name={item.name} symptoms={item.symptoms} />
-          ))}
+          {
+            loading ? <div className='text-center'>جاري التحميل...</div> : diseases.map((item: any, index: number) => <Card key={index} name={item.name} symptoms={item.symptoms} />)
+          }
 
         </div>
       </div>

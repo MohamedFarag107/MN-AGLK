@@ -1,26 +1,91 @@
-import React from 'react'
-import { AiOutlineDelete } from 'react-icons/ai'
-const Book = () => {
-  const bookURL = 'https://firebasestorage.googleapis.com/v0/b/mn-aglk.appspot.com/o/a1f88733921c820db477d054fe96afbb.jpg?alt=media&token=48ca814c-176a-4e34-acdc-2ddfd95b5cd7'
+import { getBookImageUrl, getBookPdfUrl } from '@/components/ProfileImage'
+import useBooks from '@/hooks/useBooks';
+import { useState } from 'react'
+import { useAppSelector } from '@/hooks/useRedux';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
+import { AiOutlineDelete } from 'react-icons/ai';
+interface IBook {
+  title?: string | undefined;
+  author?: string | undefined;
+  description?: string | undefined;
+  bookImage?: string | undefined;
+  bookFile?: string | undefined;
+  _id?: string | undefined;
+  createdAt?: string | undefined;
+  updatedAt?: string | undefined;
+  __v?: number | undefined;
+}
+const Book = ({ item }: { item: IBook }) => {
+  const delteBook = (id: string) => {
+    axios.delete(`/books/${id}`).then(res => {
+      window.location.reload()
+    }).catch(err => {
+      console.log(err)
+      toast.error('حدث خطأ ما')
+    }
+    )
+  }
   return (
     <div className='flex flex-col justify-center items-start gap-5 p-5 bg-white rounded-3xl shadow-xl'>
-      <div className='rounded-md p-2 cursor-pointer bg-red-500 w-fit text-white transition-all'>
+      <div onClick={() => delteBook(item._id || "")} className='rounded-md p-2 cursor-pointer bg-red-500 w-fit text-white transition-all'>
         <AiOutlineDelete />
       </div>
       <div className='flex justify-center items-center w-full'>
-        <img className='h-80 object-contain' src={bookURL} alt="book" />
+        <img className='h-80 object-contain' src={getBookImageUrl(item.bookImage || "")} alt="book" />
       </div>
       <div className='flex flex-col gap-3'>
-        <h1>اسم الكتاب</h1>
-        <h1>المؤلف</h1>
-        <h1>نبذة</h1>
+        <h1>{item.title}</h1>
+        <h1>{item.author}</h1>
+        <h1>{item.description}</h1>
       </div>
-      <button className='text-center bg-primary text-white w-full p-3 rounded-xl'>تحميل</button>
+      <a className='text-center bg-primary text-white w-full p-3 rounded-xl' target={"_blank"} href={getBookPdfUrl(item.bookFile || "")}>تحميل</a>
     </div>
   )
 }
 
 function AddBook() {
+  const { loading } = useBooks()
+  const { books } = useAppSelector(state => state.books)
+
+  // title
+  const [title, setTitle] = useState('')
+  // author
+  const [author, setAuthor] = useState('')
+  // description
+  const [description, setDescription] = useState('')
+  // bookImage
+  const [bookImage, setBookImage] = useState<File | null>(null)
+  // bookFile
+  const [bookFile, setBookFile] = useState<File | null>(null)
+
+  // loading
+  const [isLoading, setIsLoading] = useState(false)
+
+
+  const add = () => {
+    if (!title || !author || !description || !bookImage || !bookFile) {
+      toast.error('يجب ملئ جميع الحقول')
+      return
+    }
+    setIsLoading(true)
+    const formData = new FormData()
+    formData.append('title', title)
+    formData.append('author', author)
+    formData.append('description', description)
+    formData.append('bookImage', bookImage)
+    formData.append('bookFile', bookFile)
+    axios.post('/books', formData).then(res => {
+      window.location.reload()
+    }).catch(err => {
+      console.log(err)
+      toast.error('حدث خطأ ما')
+    }).finally(() => {
+      setIsLoading(false)
+    })
+  }
+
+
   return (
     <div>
       <div className="container">
@@ -29,26 +94,32 @@ function AddBook() {
           <div className='bg-secondary space-y-5 rounded-md p-5 my-5'>
             <div className='flex flex-col items-center gap-3 md:flex-row'>
               <p className='w-[100px]'>اسم الكتاب:</p>
-              <input placeholder='اسم الكتاب' className='flex-1 p-2' type="text" />
+              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder='اسم الكتاب' className='flex-1 p-2' type="text" />
             </div>
             <div className='flex flex-col items-center gap-3 md:flex-row'>
               <p className='w-[100px]'>المؤلف:</p>
-              <input placeholder='المؤلف' className='flex-1 p-2' type="text" />
+              <input value={author} onChange={(e) => setAuthor(e.target.value)} placeholder='المؤلف' className='flex-1 p-2' type="text" />
             </div>
             <div className='flex flex-col items-center gap-3 md:flex-row'>
               <p className='w-[100px]'>نبذة:</p>
-              <textarea placeholder='نبذة' rows={5} className='flex-1 p-2' />
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder='نبذة' className='flex-1 p-2' />
+            </div>
+            <div className='flex flex-col items-center gap-3 md:flex-row'>
+              <p className='w-[100px]'>رفع صورة الكتاب:</p>
+              <input onChange={(e) => setBookImage(e.target.files?.item(0) || null)} placeholder='رفع صورة الكتاب' className='flex-1 p-2' type="file" />
             </div>
             <div className='flex flex-col items-center gap-3 md:flex-row'>
               <p className='w-[100px]'>رفع الكتاب:</p>
-              <input placeholder='رفع الكتاب' className='flex-1 p-2' type="file" />
+              <input onChange={(e) => setBookFile(e.target.files?.item(0) || null)} placeholder='رفع الكتاب' className='flex-1 p-2' type="file" />
             </div>
-            <button className='bg-primary text-white p-3 rounded-xl'>إضافة</button>
+            <button onClick={add} className='bg-primary text-white p-3 rounded-xl'>{
+              isLoading ? 'جاري الاضافة .... ' : 'إضافة'
+            }</button>
           </div>
           <h1 className='text-xl font-bold pb-5'>الكتب</h1>
           <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5 p-5 bg-secondary'>
             {
-              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item, index) => <Book key={index} />)
+              books.map((item, index) => <Book key={index} item={item} />)
             }
           </div>
           <div className='h-[100px]' />

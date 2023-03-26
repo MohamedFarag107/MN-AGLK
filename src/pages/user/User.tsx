@@ -1,12 +1,14 @@
 import Footer from '@/components/Footer'
 import { useOutlet } from 'react-router-dom'
 import { AiOutlineHome, AiOutlineFileAdd } from 'react-icons/ai'
+ 
 
 import { CgProfile } from 'react-icons/cg'
-import Link from '@/components/Link'
+import Link from '@/components/Link' 
 
 function User() {
   const outlet = useOutlet()
+
   return (
     <div>
       <div className='flex'>

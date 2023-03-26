@@ -18,6 +18,11 @@ import MyConsultation from "./pages/user/MyConsultation";
 import UpdateTherapistInfo from "./pages/therapist/UpdateTherapistInfo";
 import Therapist from "./pages/therapist/Therapist";
 import ShowConsultation from "./pages/therapist/ShowConsultation";
+import { useAppDispatch } from "./hooks/useRedux";
+import { loadUser } from "./features/user/user-slice";
+import { Toaster } from "react-hot-toast";
+import axios from "axios";
+import { toast } from "react-hot-toast";
 
 export default function App() {
   const params = useLocation()
@@ -25,8 +30,41 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [params.key])
 
+
+
+  const dispatch = useAppDispatch()
+
+  // load user from local storage
+  useEffect(() => {
+    const user = localStorage.getItem('user')
+    const altUser = {
+      type: ""
+    }
+    if (user) {
+      const token = JSON.parse(user).token
+      axios.get('/users/getMe', {
+        headers: {
+          "Authorization": "Bearer " + token
+        }
+      }).then(res => {
+        const { data } = res.data
+        const allData = { ...JSON.parse(user), ...data }
+        dispatch(loadUser(allData))
+      }).catch(err => {
+        toast.error('حدث خطأ ما')
+        dispatch(loadUser(altUser))
+      })
+    }
+  }, [])
+
+
   return (
     <>
+      {/* tost */}
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+      />
       <Routes>
         {/* public */}
         <Route path="/" element={<Main />} >
